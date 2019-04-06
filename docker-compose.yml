@@ -1,0 +1,42 @@
+version: '3'
+services:
+  client:
+    build:
+      context: ./client
+    environment:
+      THREADS: 100000
+
+  server:
+    build:
+      context: ./server
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    ports:
+      - 8080:8080
+
+  nginx-metrics:
+    restart: always
+    image: nginx/nginx-prometheus-exporter:0.3.0
+    command: -nginx.scrape-uri http://server:8081/stats
+
+  prometheus:
+    image: prom/prometheus:v2.8.1
+    volumes:
+      - "./assets/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml"
+
+  grafana:
+    image: grafana/grafana:5.4.3
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: "Editor"
+      GF_AUTH_BASIC_ENABLED: "false"
+      GF_AUTH_DISABLE_LOGIN_FROM: "true"
+      GF_LOG_MODE: "console"
+      GF_LOG_LEVEL: "warn"
+    ports:
+      - 3000:3000
+    volumes:
+      - "./assets/grafana/datasource-prometheus.yaml:/etc/grafana/provisioning/datasources/prometheus.yaml"
+      - "./assets/grafana/dashboards.yaml:/etc/grafana/provisioning/dashboards/dashboards.yaml"
+      - "./assets/grafana/dashboard-nginx.json:/var/lib/grafana/dashboards/nginx.json"

